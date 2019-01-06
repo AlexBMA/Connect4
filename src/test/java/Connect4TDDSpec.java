@@ -11,6 +11,9 @@ import java.io.PrintStream;
 
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.isEmptyString;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /*
     Req 1:
@@ -32,7 +35,24 @@ import static org.hamcrest.Matchers.*;
     occurs within the game
     The output shows the status of the board on every move
 
+    Req 5:
+    When no more disc can be inserted, the game finished and it is
+    considered a draw.
+
+    Req 6:
+    If a player inserts a disc and connects more than three disc
+    of his color in a straight vertical line, then that player wins.
+
+    Req 7:
+    If a player inserts a disc and connects more than three disc
+    of his color in a straight horizontal line, then that player wins
+
+    Req 8:
+    If a player inserts a disc and connects more than three discs of his
+    colour in a straight diagonal line, then the player wins
  */
+
+
 public class Connect4TDDSpec {
 
     private OutputStream outputStream;
@@ -100,5 +120,57 @@ public class Connect4TDDSpec {
         assertThat(tested.getCurrentPlayer(),is("G"));
     }
 
+    @Test
+    public void whenTheGameStartsItIsNotFinished(){
+        assertFalse("The game must not be finished", tested.isFinished());
+    }
 
+    @Test
+    public void whenAskedForCurrentPlayerTheOutputNotice(){
+        tested.getCurrentPlayer();
+        assertThat(outputStream.toString(),containsString("Player R turn"));
+    }
+    @Test
+    public void whenADiscIsIntroducedTheBoardIsPrinted() {
+        int column = 1;
+        tested.putDiscInColumn(column);
+        assertThat(outputStream.toString(),containsString("| |R| | | | | |"));
+    }
+
+    @Test
+    public void whenNoDiscCanBeIntroducedTheGameIsFinished(){
+        for(int row =0;row<6;row++){
+            for(int column =0;column<7;column++){
+                tested.putDiscInColumn(column);
+            }
+
+        }
+        assertTrue("The game is finished", tested.isFinished());
+
+    }
+
+    @Test
+    public void when4VerticalDiscsAreConnectedThenPlayerWins(){
+        for(int row =0;row<3;row++){
+            tested.putDiscInColumn(1);
+            tested.putDiscInColumn(2);
+        }
+
+        assertThat(tested.getWinner(),isEmptyString());
+        tested.putDiscInColumn(1);//R
+        assertThat(tested.getWinner(),is("R"));
+    }
+
+
+    @Test
+    public void when4HorizontalDiscAreConnectedThenPlayerWins(){
+        int column;
+        for(column =0;column<3;column++){
+            tested.putDiscInColumn(column);//R
+            tested.putDiscInColumn(column);//G
+        }
+        assertThat(tested.getWinner(),isEmptyString());
+        tested.putDiscInColumn(column); // R
+        assertThat(tested.getWinner(),is("R"));
+    }
 }
